@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "128130227904",
+    "project_id": "arank-india",
+    "storage_bucket": "arank-india.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128130227904:android:b2d2354be4ca7823edd725",
+        "android_client_info": {
+          "package_name": "com.arankindia.arank_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO_isDqt7gPA_iC6Qbr3Xvcz6iKMtDVi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128130227904:android:0909eb956d68971fedd725",
+        "android_client_info": {
+          "package_name": "com.arankindia.arank_india"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO_isDqt7gPA_iC6Qbr3Xvcz6iKMtDVi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
