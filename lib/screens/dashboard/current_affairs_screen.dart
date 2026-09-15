@@ -138,8 +138,11 @@ class _CurrentAffairsScreenState extends State<CurrentAffairsScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
                 if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-                final docs = [...(snapshot.data?.docs ?? [])];
+
+                final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+                    List<QueryDocumentSnapshot<Map<String, dynamic>>>.from(snapshot.data?.docs ?? const []);
                 docs.sort((a, b) => _time(b).compareTo(_time(a)));
+
                 if (docs.isEmpty) return const Center(child: Text('No Current Affairs yet. Tap + Add Current Affairs.'));
 
                 return ListView(
@@ -149,7 +152,7 @@ class _CurrentAffairsScreenState extends State<CurrentAffairsScreen> {
                     const SizedBox(height: 6),
                     const Text('Manage the headline, summary and paragraph-wise content shown in the student app.'),
                     const SizedBox(height: 18),
-                    ...docs.map(_card),
+                    ...docs.map<Widget>((doc) => _card(doc)),
                   ],
                 );
               },
