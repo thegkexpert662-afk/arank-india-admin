@@ -1,88 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class SubjectScreen extends StatelessWidget {
+import '../../providers/subject_provider.dart';
+import '../../models/subject_model.dart';
+import '../../widgets/subject_dialog.dart';
+
+class SubjectScreen extends StatefulWidget {
   const SubjectScreen({super.key});
 
   @override
+  State<SubjectScreen> createState() => _SubjectScreenState();
+}
+
+class _SubjectScreenState extends State<SubjectScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      context.read<SubjectProvider>().loadSubjects();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+    final provider = context.watch<SubjectProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Subject Management"),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
       ),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.indigo,
-        onPressed: () {},
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (_) => const SubjectDialog(),
+          );
+        },
         child: const Icon(Icons.add),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
+      body: provider.isLoading
+          ? const Center(
+        child: CircularProgressIndicator(),
+      )
+          : ListView.builder(
+        itemCount: provider.subjects.length,
+        itemBuilder: (context, index) {
 
-            TextField(
-              decoration: InputDecoration(
-                hintText: "Search Subject",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
+          SubjectModel subject =
+          provider.subjects[index];
+
+          return Card(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 15,
+              vertical: 8,
             ),
+            child: ListTile(
+              title: Text(subject.name),
 
-            const SizedBox(height: 20),
+              subtitle: Text(
+                subject.category,
+              ),
 
-            Expanded(
-              child: Card(
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    columns: const [
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
 
-                      DataColumn(label: Text("Name")),
-                      DataColumn(label: Text("Category")),
-                      DataColumn(label: Text("Order")),
-                      DataColumn(label: Text("Status")),
-                      DataColumn(label: Text("Action")),
-
-                    ],
-                    rows: const [
-
-                      DataRow(
-                        cells: [
-
-                          DataCell(Text("Mathematics")),
-                          DataCell(Text("SSC GD")),
-                          DataCell(Text("1")),
-                          DataCell(Text("Active")),
-
-                          DataCell(
-                            Row(
-                              children: [
-
-                                Icon(Icons.edit,color: Colors.blue),
-
-                                SizedBox(width:10),
-
-                                Icon(Icons.delete,color: Colors.red),
-
-                              ],
-                            ),
-                          ),
-
-                        ],
-                      ),
-
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => SubjectDialog(
+                          subject: subject,
+                        ),
+                      );
+                    },
                   ),
-                ),
+
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      provider.deleteSubject(
+                        subject.id,
+                      );
+                    },
+                  ),
+
+                ],
               ),
             ),
-
-          ],
-        ),
+          );
+        },
       ),
     );
   }

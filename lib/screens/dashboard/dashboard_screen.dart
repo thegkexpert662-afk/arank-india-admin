@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 import '../subjects/subject_screen.dart';
+import '../mock_tests/mock_test_list_screen.dart';
+import '../questions/question_screen.dart';
+import '../../screens/admin/reward_claims_screen.dart';
+import '../../screens/admin/question_upload_screen.dart';
+import '../../screens/admin/hindiquestions_screen.dart';
+import '../../screens/admin/maths_screen.dart';
+import '../../screens/admin/reasoning_screen.dart';
+import 'home_banner_screen.dart';
+import '../users/users_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -36,6 +45,19 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             ListTile(
+              leading: const Icon(Icons.campaign),
+              title: const Text("Home Banner"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HomeBannerScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
               leading: const Icon(Icons.menu_book),
               title: const Text("Subjects"),
               onTap: () {Navigator.push(
@@ -47,22 +69,110 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             ListTile(
-              leading: const Icon(Icons.library_books),
-              title: const Text("Chapters"),
-              onTap: () {},
+              leading: const Icon(Icons.assignment),
+              title: const Text("Mock Tests"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MockTestListScreen(),
+                  ),
+                );
+              },
             ),
 
             ListTile(
               leading: const Icon(Icons.quiz),
               title: const Text("Questions"),
-              onTap: () {},
+              onTap: () {Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const QuestionScreen(),
+                ),
+              );},
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: const Text("G.K. Questions"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const QuestionUploadScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: const Text("Hindi Questions"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HindiQuestionsScreen(),
+                  ),
+                );
+              },
+            ),
+
+
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: const Text("Maths Questions"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MathsQuestionsScreen(),
+                  ),
+                );
+              },
+            ),
+
+
+            ListTile(
+              leading: const Icon(Icons.upload_file),
+              title: const Text("Reasoning Questions"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ReasoningQuestionsScreen(),
+                  ),
+                );
+              },
+            ),
+
+
+            ListTile(
+              leading: const Icon(Icons.card_giftcard),
+              title: const Text("Reward Claims"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RewardClaimsScreen(),
+                  ),
+                );
+              },
             ),
 
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text("Users"),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UsersScreen(),
+                  ),
+                );
+              },
             ),
+
 
             ListTile(
               leading: const Icon(Icons.logout),
@@ -89,9 +199,9 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             DashboardCard(
-              title: "Chapters",
-              count: "3",
-              icon: Icons.library_books,
+              title: "Mock Tests",
+              count: "0",
+              icon: Icons.assignment,
               color: Colors.orange,
             ),
 
