@@ -4,37 +4,28 @@ import 'package:provider/provider.dart';
 import 'providers/chapter_provider.dart';
 import 'firebase_options.dart';
 import 'providers/subject_provider.dart';
+import 'providers/continue_learning_provider.dart';
 import 'screens/login/login_screen.dart';
 import 'providers/question_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) => QuestionProvider(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => SubjectProvider(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => ChapterProvider(),
-          ),
-        ],
-        child: const MyApp(),
-      )
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => QuestionProvider()),
+        ChangeNotifierProvider(create: (_) => SubjectProvider()),
+        ChangeNotifierProvider(create: (_) => ChapterProvider()),
+        ChangeNotifierProvider(create: (_) => ContinueLearningProvider()),
+      ],
+      child: const MyApp(),
+    ),
   );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
