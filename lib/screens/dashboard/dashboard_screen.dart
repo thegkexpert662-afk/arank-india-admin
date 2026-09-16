@@ -13,6 +13,7 @@ import 'current_affairs_screen.dart';
 import 'achievements_screen.dart';
 import 'contact_settings_screen.dart';
 import 'app_configuration_screen.dart';
+import 'video_solutions_screen.dart';
 import '../users/users_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -23,6 +24,7 @@ class DashboardScreen extends StatelessWidget {
     final cards = <DashboardCardData>[
       DashboardCardData(title: 'Subjects', count: '4', icon: Icons.menu_book_rounded, colors: const [Color(0xff2563EB), Color(0xff60A5FA)], onTap: () => _open(context, const SubjectScreen())),
       DashboardCardData(title: 'Mock Tests', count: '0', icon: Icons.assignment_rounded, colors: const [Color(0xffF97316), Color(0xffFDBA74)], onTap: () => _open(context, MockTestListScreen())),
+      DashboardCardData(title: 'Video Solutions', count: 'NEW', icon: Icons.play_circle_fill_rounded, colors: const [Color(0xff0891B2), Color(0xff67E8F9)], onTap: () => _open(context, const VideoSolutionsScreen())),
       DashboardCardData(title: 'Questions', count: '0', icon: Icons.quiz_rounded, colors: const [Color(0xff059669), Color(0xff34D399)], onTap: () => _open(context, const QuestionScreen())),
       DashboardCardData(title: 'Users', count: '0', icon: Icons.people_alt_rounded, colors: const [Color(0xff7C3AED), Color(0xffA78BFA)], onTap: () => _open(context, const UsersScreen())),
       DashboardCardData(title: 'Continue Learning', count: '0', icon: Icons.play_lesson_rounded, colors: const [Color(0xff0891B2), Color(0xff67E8F9)], onTap: () => _open(context, const ContinueLearningScreen())),
@@ -35,6 +37,7 @@ class DashboardScreen extends StatelessWidget {
         ListTile(leading: const Icon(Icons.dashboard), title: const Text('Dashboard'), onTap: () => Navigator.pop(context)),
         ListTile(leading: const Icon(Icons.app_settings_alt_outlined), title: const Text('Create Student App / App Configuration'), onTap: () => _open(context, const AppConfigurationScreen())),
         ListTile(leading: const Icon(Icons.campaign), title: const Text('Home Banner'), onTap: () => _open(context, const HomeBannerScreen())),
+        ListTile(leading: const Icon(Icons.play_circle_fill_rounded), title: const Text('Video Solutions'), onTap: () => _open(context, const VideoSolutionsScreen())),
         ListTile(leading: const Icon(Icons.play_lesson), title: const Text('Continue Learning'), onTap: () => _open(context, const ContinueLearningScreen())),
         ListTile(leading: const Icon(Icons.newspaper_rounded), title: const Text('Current Affairs'), onTap: () => _open(context, const CurrentAffairsScreen())),
         ListTile(leading: const Icon(Icons.emoji_events), title: const Text('Achievements'), onTap: () => _open(context, const AchievementsScreen())),
