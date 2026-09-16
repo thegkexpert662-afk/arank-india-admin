@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ContactSettingsScreen extends StatefulWidget {
@@ -15,7 +16,11 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  final _doc = FirebaseFirestore.instance.collection('app_settings').doc('contact');
+  DocumentReference<Map<String, dynamic>>? get _doc {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) return null;
+    return FirebaseFirestore.instance.collection('admin_contacts').doc(uid);
+  }
 
   @override
   void initState() {
@@ -25,7 +30,9 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
 
   Future<void> _load() async {
     try {
-      final snapshot = await _doc.get();
+      final doc = _doc;
+      if (doc == null) throw StateError('Admin session not found');
+      final snapshot = await doc.get();
       final data = snapshot.data() ?? {};
       _emailController.text = (data['email'] ?? 'contact@kopersay.in').toString();
       _mobileController.text = (data['mobile'] ?? '+91 7319796868').toString();
@@ -36,16 +43,25 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    final doc = _doc;
+    if (doc == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Admin session expired. Please login again.')),
+      );
+      return;
+    }
+
     setState(() => _saving = true);
     try {
-      await _doc.set({
+      await doc.set({
+        'adminId': FirebaseAuth.instance.currentUser!.uid,
         'email': _emailController.text.trim(),
         'mobile': _mobileController.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contact details updated successfully')),
+        const SnackBar(content: Text('Your app contact details updated successfully')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -66,6 +82,7 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final adminId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contact Settings'),
@@ -89,14 +106,20 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Student App Contact',
+                              'My Student App Contact',
                               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Update the support email and mobile number shown in the Student App Help & Support section.',
+                              'These details belong only to the currently signed-in admin/app.',
                               style: TextStyle(color: Colors.grey),
                             ),
+                            const SizedBox(height: 20),
+                            if (adminId.isNotEmpty)
+                              SelectableText(
+                                'Admin App ID: $adminId',
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
                             const SizedBox(height: 24),
                             TextFormField(
                               controller: _emailController,
@@ -135,7 +158,7 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
                                 icon: _saving
                                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                                     : const Icon(Icons.save_outlined),
-                                label: Text(_saving ? 'Saving...' : 'Save Contact Details'),
+                                label: Text(_saving ? 'Saving...' : 'Save My Contact Details'),
                               ),
                             ),
                           ],
