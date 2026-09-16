@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../services/app_config_service.dart';
+
 class ContactSettingsScreen extends StatefulWidget {
   const ContactSettingsScreen({super.key});
 
@@ -13,8 +15,10 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _mobileController = TextEditingController();
+
   bool _loading = true;
   bool _saving = false;
+  String _adminId = '';
 
   DocumentReference<Map<String, dynamic>>? get _doc {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -32,10 +36,20 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
     try {
       final doc = _doc;
       if (doc == null) throw StateError('Admin session not found');
+
+      _adminId = await AppConfigService.ensureAdminId();
       final snapshot = await doc.get();
       final data = snapshot.data() ?? {};
-      _emailController.text = (data['email'] ?? 'contact@kopersay.in').toString();
-      _mobileController.text = (data['mobile'] ?? '+91 7319796868').toString();
+      _emailController.text =
+          (data['email'] ?? 'contact@kopersay.in').toString();
+      _mobileController.text =
+          (data['mobile'] ?? '+91 7319796868').toString();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to load contact settings: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -43,6 +57,7 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
     final doc = _doc;
     if (doc == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,12 +68,17 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
 
     setState(() => _saving = true);
     try {
-      await doc.set({
-        'adminId': FirebaseAuth.instance.currentUser!.uid,
-        'email': _emailController.text.trim(),
-        'mobile': _mobileController.text.trim(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await doc.set(
+        {
+          'adminUid': FirebaseAuth.instance.currentUser!.uid,
+          'adminId': _adminId,
+          'email': _emailController.text.trim(),
+          'mobile': _mobileController.text.trim(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Your app contact details updated successfully')),
@@ -82,7 +102,6 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final adminId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contact Settings'),
@@ -107,7 +126,10 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
                           children: [
                             const Text(
                               'My Student App Contact',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             const Text(
@@ -115,10 +137,45 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
                               style: TextStyle(color: Colors.grey),
                             ),
                             const SizedBox(height: 20),
-                            if (adminId.isNotEmpty)
-                              SelectableText(
-                                'Admin App ID: $adminId',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            if (_adminId.isNotEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xffEEF2FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xffC7D2FE),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.admin_panel_settings_outlined,
+                                      color: Color(0xff3730A3),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Text(
+                                      'Admin ID:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: SelectableText(
+                                        _adminId,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             const SizedBox(height: 24),
                             TextFormField(
@@ -145,9 +202,10 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
                                 prefixIcon: Icon(Icons.phone_outlined),
                                 border: OutlineInputBorder(),
                               ),
-                              validator: (value) => (value?.trim().isEmpty ?? true)
-                                  ? 'Enter contact mobile number'
-                                  : null,
+                              validator: (value) =>
+                                  (value?.trim().isEmpty ?? true)
+                                      ? 'Enter contact mobile number'
+                                      : null,
                             ),
                             const SizedBox(height: 24),
                             SizedBox(
@@ -156,9 +214,19 @@ class _ContactSettingsScreenState extends State<ContactSettingsScreen> {
                               child: ElevatedButton.icon(
                                 onPressed: _saving ? null : _save,
                                 icon: _saving
-                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
                                     : const Icon(Icons.save_outlined),
-                                label: Text(_saving ? 'Saving...' : 'Save My Contact Details'),
+                                label: Text(
+                                  _saving
+                                      ? 'Saving...'
+                                      : 'Save My Contact Details',
+                                ),
                               ),
                             ),
                           ],
