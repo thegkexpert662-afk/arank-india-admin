@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../dashboard/dashboard_screen.dart';
 
@@ -18,6 +17,11 @@ class _LoginScreenState extends State<LoginScreen>
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   late final AnimationController _waterController;
+
+  // IMPORTANT: Keep Admin Panel branding identical to the Student App.
+  // This points to the exact same logo asset used by arank-india.
+  static const String _studentAppLogoUrl =
+      'https://raw.githubusercontent.com/thegkexpert662-afk/arank-india/main/assets/images/logos/logo.png';
 
   @override
   void initState() {
@@ -108,7 +112,17 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ],
                           ),
-                          child: SvgPicture.asset('assets/arank_logo.svg'),
+                          child: ClipOval(
+                            child: Image.network(
+                              _studentAppLogoUrl,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.school_rounded,
+                                size: 62,
+                                color: Color(0xff1769E0),
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 18),
                         const Text(
