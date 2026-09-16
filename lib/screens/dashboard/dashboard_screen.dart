@@ -10,6 +10,7 @@ import '../../screens/admin/reasoning_screen.dart';
 import 'home_banner_screen.dart';
 import 'continue_learning_screen.dart';
 import 'current_affairs_screen.dart';
+import 'achievements_screen.dart';
 import '../users/users_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -24,6 +25,7 @@ class DashboardScreen extends StatelessWidget {
         ListTile(leading: const Icon(Icons.campaign), title: const Text('Home Banner'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HomeBannerScreen()))),
         ListTile(leading: const Icon(Icons.play_lesson), title: const Text('Continue Learning'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContinueLearningScreen()))),
         ListTile(leading: const Icon(Icons.newspaper_rounded), title: const Text('Current Affairs'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CurrentAffairsScreen()))),
+        ListTile(leading: const Icon(Icons.emoji_events), title: const Text('Achievements'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen()))),
         ListTile(leading: const Icon(Icons.menu_book), title: const Text('Subjects'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubjectScreen()))),
         ListTile(leading: const Icon(Icons.assignment), title: const Text('Mock Tests'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MockTestListScreen()))),
         ListTile(leading: const Icon(Icons.quiz), title: const Text('Questions'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuestionScreen()))),
