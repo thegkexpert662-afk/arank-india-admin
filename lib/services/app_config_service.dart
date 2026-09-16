@@ -1,4 +1,6 @@
+import 'dart:math';
 import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -12,13 +14,47 @@ class AppConfigService {
     return 'ARANK-${now.substring(now.length - 8)}';
   }
 
+  static String _newAdminId() {
+    final random = Random.secure();
+    return 'ARK${100000 + random.nextInt(900000)}';
+  }
+
+  static Future<String> ensureAdminId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Admin session not found');
+
+    final adminRef = _db.collection('admins').doc(user.uid);
+    final adminSnap = await adminRef.get();
+    final existingAdminId = adminSnap.data()?['adminId']?.toString();
+
+    if (existingAdminId != null && existingAdminId.isNotEmpty) {
+      return existingAdminId;
+    }
+
+    final adminId = _newAdminId();
+    await adminRef.set(
+      {
+        'adminUid': user.uid,
+        'adminId': adminId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+    return adminId;
+  }
+
   static Future<DocumentReference<Map<String, dynamic>>> ensureAppConfig() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('Admin session not found');
+
     final adminRef = _db.collection('admins').doc(user.uid);
     final adminSnap = await adminRef.get();
     final existingAppId = adminSnap.data()?['appId']?.toString();
-    if (existingAppId != null && existingAppId.isNotEmpty) return _db.collection('apps').doc(existingAppId);
+
+    if (existingAppId != null && existingAppId.isNotEmpty) {
+      await ensureAdminId();
+      return _db.collection('apps').doc(existingAppId);
+    }
 
     final appId = _newAppId();
     final appRef = _db.collection('apps').doc(appId);
@@ -33,13 +69,26 @@ class AppConfigService {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-    await adminRef.set({'adminUid': user.uid, 'appId': appId, 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+
+    await adminRef.set(
+      {
+        'adminUid': user.uid,
+        'appId': appId,
+        'adminId': _newAdminId(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
     return appRef;
   }
 
   static Future<String> uploadLogo(String appId, Uint8List bytes) async {
     final ref = _storage.ref('app_logos/$appId/logo');
-    await ref.putData(bytes, SettableMetadata(contentType: 'image/png'));
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: 'image/png'),
+    );
     return ref.getDownloadURL();
   }
 }
