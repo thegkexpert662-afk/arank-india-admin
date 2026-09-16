@@ -123,18 +123,18 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
                         children: [
                           const Text('Student App Configuration', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800)),
                           const SizedBox(height: 8),
-                          const Text('This configuration is owned by the signed-in admin. Other admins cannot use this App ID.', style: TextStyle(color: Colors.grey)),
+                          const Text('This configuration is owned by the signed-in admin. Other admins cannot use this Institute ID.', style: TextStyle(color: Colors.grey)),
                           const SizedBox(height: 20),
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              const Text('Generated Unique App ID', style: TextStyle(fontWeight: FontWeight.w700)),
+                              const Text('Generated Unique Institute ID', style: TextStyle(fontWeight: FontWeight.w700)),
                               const SizedBox(height: 6),
                               SelectableText(_appId, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
                               const SizedBox(height: 6),
-                              const Text('Students use this ID during registration to connect with this admin.', style: TextStyle(color: Colors.grey)),
+                              const Text('Students use this Institute ID during registration to connect with this institute.', style: TextStyle(color: Colors.grey)),
                             ]),
                           ),
                           const SizedBox(height: 22),
