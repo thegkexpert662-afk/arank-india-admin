@@ -13,6 +13,7 @@ class AppConfigurationScreen extends StatefulWidget {
 }
 
 class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
+  final _adminName = TextEditingController();
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _mobile = TextEditingController();
@@ -35,27 +36,27 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
     try {
       final ref = await AppConfigService.ensureAppConfig();
       final data = (await ref.get()).data() ?? {};
+      final user = FirebaseAuth.instance.currentUser;
 
       _appRef = ref;
       _appId = ref.id;
+      _adminName.text = '${data['adminName'] ?? user?.displayName ?? ''}'.trim();
+      if (_adminName.text.isEmpty && user?.email != null) {
+        _adminName.text = user!.email!.split('@').first;
+      }
       _name.text = '${data['appName'] ?? 'ARank India'}';
       _email.text = '${data['supportEmail'] ?? ''}';
       _mobile.text = '${data['mobile'] ?? ''}';
       _logoUrl = '${data['logoUrl'] ?? ''}';
     } catch (e) {
-      if (mounted) {
-        _show('Unable to load app configuration: $e');
-      }
+      if (mounted) _show('Unable to load app configuration: $e');
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _pickLogo() async {
     if (_appId.isEmpty) return;
-
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.image,
@@ -65,26 +66,19 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
       if (bytes == null) return;
 
       setState(() => _uploadingLogo = true);
-
       final url = await AppConfigService.uploadLogo(_appId, bytes);
       if (!mounted) return;
 
       setState(() => _logoUrl = url);
-      await _appRef!.set(
-        {
-          'logoUrl': url,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
+      await _appRef!.set({
+        'logoUrl': url,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       _show('Logo uploaded successfully.');
     } catch (e) {
       _show('Logo upload failed: $e');
     } finally {
-      if (mounted) {
-        setState(() => _uploadingLogo = false);
-      }
+      if (mounted) setState(() => _uploadingLogo = false);
     }
   }
 
@@ -92,58 +86,50 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
     final ref = _appRef;
     if (ref == null) return;
 
-    if (_name.text.trim().isEmpty ||
+    if (_adminName.text.trim().isEmpty ||
+        _name.text.trim().isEmpty ||
         _email.text.trim().isEmpty ||
         _mobile.text.trim().isEmpty) {
-      _show('App name, support email and mobile are required.');
+      _show('Admin name, app name, support email and mobile are required.');
       return;
     }
 
     setState(() => _saving = true);
-
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-      await ref.set(
-        {
-          'appId': _appId,
-          'ownerAdminUid': uid,
-          'appName': _name.text.trim(),
-          'supportEmail': _email.text.trim(),
-          'mobile': _mobile.text.trim(),
-          'logoUrl': _logoUrl,
-          'isActive': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
+      await ref.set({
+        'appId': _appId,
+        'ownerAdminUid': uid,
+        'adminName': _adminName.text.trim(),
+        'appName': _name.text.trim(),
+        'supportEmail': _email.text.trim(),
+        'mobile': _mobile.text.trim(),
+        'logoUrl': _logoUrl,
+        'isActive': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       _show('App configuration saved.');
     } catch (e) {
       _show('Save failed: $e');
     } finally {
-      if (mounted) {
-        setState(() => _saving = false);
-      }
+      if (mounted) setState(() => _saving = false);
     }
   }
 
   void _show(String text) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
-  InputDecoration _dec(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
-      border: const OutlineInputBorder(),
-    );
-  }
+  InputDecoration _dec(String label, IconData icon) => InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: const OutlineInputBorder(),
+      );
 
   @override
   void dispose() {
+    _adminName.dispose();
     _name.dispose();
     _email.dispose();
     _mobile.dispose();
@@ -174,10 +160,7 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
                         children: [
                           const Text(
                             'Student App Configuration',
-                            style: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
                           ),
                           const SizedBox(height: 8),
                           const Text(
@@ -202,20 +185,22 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
                                 const SizedBox(height: 6),
                                 SelectableText(
                                   _appId,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                                 ),
                                 const SizedBox(height: 6),
                                 const Text(
-                                  'Students configure this ID once. The app remembers it locally.',
+                                  'Students use this ID during registration to connect with this admin.',
                                   style: TextStyle(color: Colors.grey),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 22),
+                          TextField(
+                            controller: _adminName,
+                            decoration: _dec('Admin Name', Icons.person_outline),
+                          ),
+                          const SizedBox(height: 16),
                           TextField(
                             controller: _name,
                             decoration: _dec('App Name', Icons.apps_outlined),
@@ -224,8 +209,7 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
                           TextField(
                             controller: _email,
                             keyboardType: TextInputType.emailAddress,
-                            decoration:
-                                _dec('Support Email', Icons.email_outlined),
+                            decoration: _dec('Support Email', Icons.email_outlined),
                           ),
                           const SizedBox(height: 16),
                           TextField(
@@ -237,29 +221,19 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
                           Row(
                             children: [
                               ElevatedButton.icon(
-                                onPressed:
-                                    _uploadingLogo ? null : _pickLogo,
+                                onPressed: _uploadingLogo ? null : _pickLogo,
                                 icon: _uploadingLogo
                                     ? const SizedBox(
                                         width: 18,
                                         height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
+                                        child: CircularProgressIndicator(strokeWidth: 2),
                                       )
                                     : const Icon(Icons.upload_file),
-                                label: Text(
-                                  _uploadingLogo
-                                      ? 'Uploading...'
-                                      : 'Upload Logo',
-                                ),
+                                label: Text(_uploadingLogo ? 'Uploading...' : 'Upload Logo'),
                               ),
                               const SizedBox(width: 14),
                               if (_logoUrl.isNotEmpty)
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                ),
+                                const Icon(Icons.check_circle, color: Colors.green),
                               if (_logoUrl.isNotEmpty)
                                 const Padding(
                                   padding: EdgeInsets.only(left: 8),
@@ -277,16 +251,10 @@ class _AppConfigurationScreenState extends State<AppConfigurationScreen> {
                                   ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
+                                      child: CircularProgressIndicator(strokeWidth: 2),
                                     )
                                   : const Icon(Icons.save_outlined),
-                              label: Text(
-                                _saving
-                                    ? 'Saving...'
-                                    : 'Save App Configuration',
-                              ),
+                              label: Text(_saving ? 'Saving...' : 'Save App Configuration'),
                             ),
                           ),
                         ],
